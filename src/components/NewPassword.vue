@@ -3,11 +3,13 @@
     <form @submit="submitForm">
       <div class="row padded">
         <div class="input-field col s12 m6 l6 offset-l3 offset-m3">
-          <input id="password" name="password" type="password" v-model="password" required>
+          <input id="password" name="password" type="password" v-model="password" v-validate="'required'">
+          <span v-show="errors.has('password')" class="text-danger">{{ errors.first('password') }}</span>
           <label for="password">New Password</label>
         </div>
         <div class="input-field col s12 m6 l6 offset-l3 offset-m3">
-          <input id="passwordConfirm" name="passwordConfirm" type="password" v-model="confirmPassword" required>
+          <input id="passwordConfirm" name="passwordConfirm" type="password" v-model="confirmPassword" v-validate="'required|confirmed:password'">
+          <span v-show="errors.has('passwordConfirm')" class="text-danger">{{ errors.first('passwordConfirm') }}</span>
           <label for="passwordConfirm">Confirm Password</label>
         </div>
         <div class="row">
@@ -34,20 +36,32 @@ export default {
       submitForm: function(ev) {
         ev.preventDefault();
         var self = this;
-        var token = this.$route.params.token;
-        $.post("http://localhost:3000/api/reset/", token, function(result){
-          if(result.expired) {
-            Materialize.toast('Your token has expired', 4000);
-            router.push('/retrievePassword');
-          } else if(result.error) {
-            Materialize.toast('Internal Error. Please try again.', 4000);
-            router.push('/retrievePassword');
-          } else if(result.success) {
-            Materialize.toast('Your Password has been changed', 4000);
-            //router.push('/');
+        this.$validator.validateAll().then((result) => {
+          if (result) {
+            $.post("http://localhost:3000/api/reset/", {token: self.$route.params.token, password: self.password}, function(result){
+              router.push('/');
+              Materialize.toast('Your password has been changed.',4000);
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                if(jqXHR.status == 404) {
+                  router.push('/retrievePassword');
+                  Materialize.toast('Token was already used or is malformed.',4000);
+                } else if(jqXHR.status == 410) {
+                  router.push('/retrievePassword');
+                  Materialize.toast('Your password reset token has expired. \n Please request a new one.',4000);
+                } else {
+                  router.push('/retrievePasword');
+                  Materialize.toast('Something went wrong. Please try again.',4000);
+                }
+            });
           }
         });
-        //router.push('/');
+      }
+    },
+    created: function() {
+      if(localStorage.getItem('jwt_token')) {
+        if(jwt_decode(localStorage.getItem('jwt_token')).exp*1000 > Date.now()) {
+          router.push('/profile');
+        }
       }
     }
 }
@@ -63,6 +77,9 @@ export default {
 }
 .btn {
   width: 100%;
+  background-color: #90a4ae;
 }
-
+.btn:hover {
+  background-color: #546e7a;
+}
 </style>

@@ -1,20 +1,20 @@
 <template>
   <div class="container yellow">
-      <div class="infor" v-if="isVerified">
+      <!--<div class="info" v-if="isVerified">
         <p>Thank you for verificating your email. You can now go to your
           <router-link class="btn" to="/profile">profile</router-link>
         </p>
       </div>
-      <div class="infor" v-if="error">
+      <div class="info" v-if="error">
         <p>Please request another verification email in your
-           <router-link class="btn" to="/profile">profile</router-link>.
+           <router-link class="btn" to="/profile">profile</router-link>
         </p>
       </div>
-      <div class="infor" v-if="expired">
+      <div class="info" v-if="expired">
         <p>Your Verification token has expired. Please request another verification email in your
-           <router-link class="btn" to="/profile">profile</router-link>.
+           <router-link class="btn" to="/profile">profile</router-link>
         </p>
-      </div>
+      </div>-->
   </div>
 </template>
 
@@ -26,9 +26,7 @@ export default {
   name: 'verification',
   data () {
     return {
-      error: false,
-      isVerified: false,
-      expired: false
+
     }
   },
   methods: {
@@ -44,10 +42,11 @@ export default {
         localStorage['user'] = JSON.stringify(user);
       }
       Materialize.toast('Your Account has been verified!',4000);
+      router.push('/profile');
     }).fail(function(jqXHR, textStatus, errorThrown) {
         if(jqXHR.status == 409) {
           self.error = true;
-          Materialize.toast('This account is already verified or the token is malformed.',4000);
+          Materialize.toast('This account is already verified or the token is not valid.',4000);
         } else if(jqXHR.status == 410) {
           self.expired = true;
           Materialize.toast('Your verification token has expired. Please request another verification email.',4000);
@@ -55,6 +54,7 @@ export default {
           self.error = true;
           Materialize.toast('Something went wrong. Please request another verification email.',4000);
         }
+        router.push('/profile');
     });
   }
 }
@@ -63,8 +63,10 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 
-.infor {
-  margin-top: 200px;
+.info {
+  position: relative;
+  top: 50%;
+  margin:auto;
   color: black;
   text-align: center;
 }
@@ -88,6 +90,10 @@ export default {
   right: 0;
   min-width: 100%;
   height: 100vh;
+}
+
+p {
+  margin: 0;
 }
 
 </style>

@@ -4,12 +4,16 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import axios from 'axios'
-import VeeValidate from 'vee-validate';
+import VeeValidate from 'vee-validate'
+import custom_messages from './assets/custom_messages'
 
-Vue.use(VeeValidate);
 Vue.use(axios);
+Vue.use(VeeValidate, {
+    dictionary: {
+        en: { messages: custom_messages }
+    }
+});
 Vue.config.productionTip = false;
-
 
 
 /* eslint-disable no-new */

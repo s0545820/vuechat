@@ -17,7 +17,8 @@ export default {
       user: {
         username: '',
         email: ''
-      }
+      },
+      auth: false
     }
   },
   methods: {
@@ -49,13 +50,10 @@ export default {
     }
   },
   created: function () {
-
-          //CHECK IF TOKEN VALID AND SET AUTH TO TRUE
-          //This way every time the app is opened it gets checked if user is logged in
-          //if token not valid set auth to false. auth is a prop
-      this.refresh_token();
-      this.refresh_token_loop();
+        this.refresh_token();
+        this.refresh_token_loop();
   }
+
 }
 </script>
 
@@ -65,6 +63,29 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
+}
+.text-danger {
+  color: #f44336;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+}
+@-webkit-keyframes autofill {
+    to {
+        color: #546e7a;
+        background: transparent;
+    }
+}
 
+input:-webkit-autofill {
+    -webkit-animation-name: autofill;
+    -webkit-animation-fill-mode: both;
+}
+
+.input-field input[type]:focus + label {
+  color: #546e7a;
+}
+.input-field input[type]:focus {
+  border-bottom: 1px solid #546e7a;
+  box-shadow: 0 1px 0 0 #546e7a;
 }
 </style>

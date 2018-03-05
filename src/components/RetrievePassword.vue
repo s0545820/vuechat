@@ -3,7 +3,8 @@
     <form @submit="submitForm">
       <div class="row padded">
         <div class="input-field col s12 m6 l6 offset-l3 offset-m3">
-          <input placeholder="Email" type="email" id="email" name="email" v-model="email" required>
+          <input placeholder="Email" type="email" id="email" name="email" v-model="email" v-validate="'required|email'">
+          <span v-show="errors.has('email')" class="text-danger">{{ errors.first('email') }}</span>
         </div>
       </div>
       <div class="row">
@@ -16,7 +17,8 @@
 </template>
 
 <script>
-import router from '../router/index'
+import router from '../router/index';
+import jwt_decode from 'jwt-decode';
 export default {
   name: 'retrieve',
   data () {
@@ -28,18 +30,28 @@ export default {
     submitForm: function(e) {
       e.preventDefault();
       var self = this;
-      var msg = '';
-      var email = this.email;
-      $.post("http://localhost:3000/api/forgot/", email, function(result){
-        if(!result.user_found) {
-          msg = 'No user found with this email';
-        } else if(result.email_sent) {
-          msg = result.message;
+      this.$validator.validateAll().then((result) => {
+        if (result) {
+          $.post("http://localhost:3000/api/forgot/", {email: self.email}, function(result){
+            Materialize.toast('Please check your email for further instructions.', 4000);
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              if(jqXHR.status == 404) {
+                router.push('/retrievePassword');
+                Materialize.toast('Account with this email does not exist.',4000);
+              } else {
+                router.push('/retrievePasword');
+                Materialize.toast('Something went wrong. Please try again.',4000);
+              }
+          });
         }
-        Materialize.toast(msg, 4000);
       });
-      //Materialize.toast(msg, 4000);
-      //router.push('/');
+    }
+  },
+  created: function() {
+    if(localStorage.getItem('jwt_token')) {
+      if(jwt_decode(localStorage.getItem('jwt_token')).exp*1000 > Date.now()) {
+        router.push('/profile');
+      }
     }
   }
 }
@@ -55,39 +67,11 @@ export default {
 }
 .btn {
   width: 100%;
-}
-
-.text-danger {
-  color: #f44336;
-  font-weight: bold;
-}
-button {
   background-color: #90a4ae;
 }
-button:hover {
-  background-color: #546e7a;
-}
-input:-webkit-autofill {
-    -webkit-animation-name: autofill;
-    -webkit-animation-fill-mode: both;
-}
 
-.input-field input:focus + label {
-  color: #546e7a;
-}
-.input-field input:focus {
-  border-bottom: 1px solid #546e7a;
-  box-shadow: 0 1px 0 0 #546e7a;
-}
-@-webkit-keyframes autofill {
-    to {
-        color: #546e7a;
-        background: transparent;
-    }
-}
-.input-field label {
-  color: #90a4ae;
-  font-weight: bold;
+.btn:hover {
+  background-color: #546e7a;
 }
 
 ::placeholder {

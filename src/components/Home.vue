@@ -2,56 +2,63 @@
   <div id="container" class="yellow">
     <div class="row">
       <div class="col s12 m12 l12 halfheight">
-        <h2><p>Join our Chat</p> and meet new people! </h2>
+        <h2>Vuechat</h2>
+        <h3>Start chatting right now!</h3>
       </div>
     </div>
 
-    <div v-if="!auth" class="row" id="forms">
+    <div class="row" id="forms">
       <form v-on:submit="signUp">
         <div id="signup" class="col s12 col m6 offset-m3"><!--Signup Form-->
           <div class="row">
             <div class="input-field col s10 offset-s1">
-              <input id="username" name="username" type="text" v-model="credentials.username" required>
+              <input id="username" name="username" type="text" v-model="credentials.username" v-validate="'required'">
+              <span v-show="errors.has('username')" class="text-danger">{{ errors.first('username') }}</span>
               <label for="username">Username</label>
             </div>
           </div>
           <div class="row">
             <div class="input-field col s10 offset-s1">
-              <input id="email" name="email" type="email" v-model="credentials.email" required>
+              <input id="email" name="email" type="email" v-model="credentials.email" v-validate="'required|email'">
+              <span v-show="errors.has('email')" class="text-danger">{{ errors.first('email') }}</span>
               <label for="username">Email</label>
             </div>
           </div>
           <div class="row">
             <div class="input-field col s10 offset-s1">
-              <input id="password" name="password" type="password" v-model="credentials.password" required>
+              <input id="password" name="password" type="password" v-model="credentials.password" v-validate="'required'">
+              <span v-show="errors.has('password')" class="text-danger">{{ errors.first('password') }}</span>
               <label for="username">Password</label>
             </div>
           </div>
           <div class="row">
             <div class="input-field col s10 offset-s1">
-              <input id="passwordConfirm" name="passwordConfirm" type="password" v-model="passwordconfirm" required>
+              <input id="passwordConfirm" name="passwordConfirm" type="password" v-model="passwordconfirm" v-validate="'required|confirmed:password'">
+              <span v-show="errors.has('passwordConfirm')" class="text-danger">{{ errors.first('passwordConfirm') }}</span>
               <label for="username">Confirm Password</label>
             </div>
           </div>
           <div class="row">
             <div class="col s10 m10 l4 offset-s1 offset-m1 offset-l4">
-              <button id="submit" name="submit" type="submit" class="btn join">Join Now!</button>
+              <button id="submit" name="submit" type="submit" class="btn">Join Now!</button>
             </div>
           </div>
         </div>
       </form>
       <div id="login">
-        <form v-on:submit="logIn">
+        <form id="loginform" v-on:submit="logIn">
           <div class="col s10 m8 l6 offset-s1 offset-m2 offset-l3"><!--Login Form-->
             <div class="row">
               <div class="input-field">
-                <input id="l_username" name="l_username" type="text" v-model="logincreds.username" required>
+                <input id="l_username" name="l_username" type="text" v-model="logincreds.username" v-validate="'required'">
+                <span v-show="errors.has('l_username')" class="text-danger">{{ errors.first('l_username') }}</span>
                 <label for="l_username">Username</label>
               </div>
             </div>
             <div class="row">
               <div class="input-field">
-                <input id="l_password" name="l_password" type="password" v-model="logincreds.password" required>
+                <input id="l_password" name="l_password" type="password" v-model="logincreds.password" v-validate="'required'">
+                <span v-show="errors.has('l_password')" class="text-danger">{{ errors.first('l_password') }}</span>
                 <label for="l_password">Password</label>
               </div>
             </div>
@@ -63,9 +70,9 @@
           </div>
         </form>
         <div class="row">
-          <div class="col s10 m8 l6 offset-s1 offset-m2 offset-l3">
+          <div class="col s12 m8 l6 offset-m2 offset-l3">
             <div class="col s6 m6 l6">
-              <button class="btn smalltext" id="toggle">Need an account?</button>
+              <button class="btn smalltext" id="toggle" v-on:click="toggle">Need an account?</button>
             </div>
             <div class="col s6 m6 l6">
               <router-link to="retrievePassword" class="btn smalltext">Forgot password?</router-link>
@@ -73,19 +80,12 @@
           </div>
         </div>
       </div>
-
-
     </div>
-
   </div>
 </template>
 
+
 <script>
-$(document).ready(function(){
-  $("#toggle").click(function(){
-    $("#login, #signup").toggle("slow");
-  });
-});
 import axios from 'axios';
 import router from '../router/index';
 import jwt_decode from 'jwt-decode';
@@ -104,56 +104,82 @@ export default {
       logincreds: {
         username: '',
         password: ''
-      },
-      auth: false
+      }
     }
   },
   methods: {
+    toggle: function() {
+        $("#login, #signup").toggle("slow");
+    },
     signUp: function(ev) {
       ev.preventDefault();
-      if(this.passwordconfirm == this.credentials.password) {
-        var newUser = {
-          username: this.credentials.username,
-          email: this.credentials.email,
-          password: this.credentials.password,
-        };
-        $.post("http://localhost:3000/api/register", newUser, function(result){
-          localStorage.setItem('jwt_token', result.jwt_token);
-          localStorage.setItem('refresh_token', result.refresh_token);
-          var user = {
-            username: jwt_decode(localStorage.getItem('jwt_token')).username,
-            email: jwt_decode(localStorage.getItem('jwt_token')).email,
-            isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
-          }
-          localStorage.setItem('user', JSON.stringify(user));
-          router.push('/profile');
-        });
-      } else {
-        Materialize.toast('Passwords do not match',4000);
-      }
+      var self = this;
+      this.$validator.validateAll(['username','email','password','passwordConfirm']).then((result) => {
+        if (result) {
+          var newUser = {
+            username: self.credentials.username,
+            email: self.credentials.email,
+            password: self.credentials.password,
+          };
+          $.post("http://localhost:3000/api/register", newUser, function(result){
+            localStorage.setItem('jwt_token', result.jwt_token);
+            localStorage.setItem('refresh_token', result.refresh_token);
+            var user = {
+              username: jwt_decode(localStorage.getItem('jwt_token')).username,
+              email: jwt_decode(localStorage.getItem('jwt_token')).email,
+              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
+            }
+            localStorage.setItem('user', JSON.stringify(user));
+            router.push('/profile');
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              if(jqXHR.status == 409) {
+                Materialize.toast('Email or Username already in use.',4000);
+              } else {
+                Materialize.toast('Something went wrong. Please try again.',4000);
+              }
+          });
+        }
+      });
     },
     logIn: function(ev) {
       ev.preventDefault();
-      var user = {
-        username: this.logincreds.username,
-        password: this.logincreds.password
-      };
-            $.post("http://localhost:3000/api/login", user, function(result){
-              localStorage.setItem('jwt_token', result.jwt_token);
-              localStorage.setItem('refresh_token', result.refresh_token);
-              var user = {
-                username: jwt_decode(localStorage.getItem('jwt_token')).username,
-                email: jwt_decode(localStorage.getItem('jwt_token')).email,
-                isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
+      var self = this;
+      this.$validator.validateAll(['l_username','l_password']).then((result) => {
+        if (result) {
+          var user = {
+            username: self.logincreds.username,
+            password: self.logincreds.password
+          };
+          $.post("http://localhost:3000/api/login", user, function(result){
+            localStorage.setItem('jwt_token', result.jwt_token);
+            localStorage.setItem('refresh_token', result.refresh_token);
+            var user = {
+              username: jwt_decode(localStorage.getItem('jwt_token')).username,
+              email: jwt_decode(localStorage.getItem('jwt_token')).email,
+              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
+            }
+            localStorage.setItem('user', JSON.stringify(user));
+            //Todo: Send request to server to set user 'online'
+            router.push('/profile');
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+              if(jqXHR.status == 401) {
+                //self.$validator.errors.add('wrong_pw', 'Wrong password', 'password1');
+                Materialize.toast('Wrong Password',4000);
+              } else if(jqXHR.status == 404) {
+                Materialize.toast('User with this username does not exist.',4000);
+              } else {
+                Materialize.toast('Something went wrong. Please try again.',4000);
               }
-              localStorage.setItem('user', JSON.stringify(user));
-              router.push('/profile');
-            });
+          });
+        }
+      });
     }
   },
   created: function() {
-    if(jwt_decode(localStorage.getItem('jwt_token')).exp*1000 > Date.now()) {
-      this.auth = true;
+    if(localStorage.getItem('jwt_token')) {
+      if(jwt_decode(localStorage.getItem('jwt_token')).exp*1000 > Date.now()) {
+        router.push('/profile');
+      }
     }
   }
 }
@@ -170,32 +196,25 @@ export default {
 .input-field label {
   color: #90a4ae;
   font-weight: bold;
-
 }
 
-@-webkit-keyframes autofill {
-    to {
-        color: #546e7a;
-        background: transparent;
-    }
+.halfheight {
+  padding-bottom: 20px;
 }
 
-input:-webkit-autofill {
-    -webkit-animation-name: autofill;
-    -webkit-animation-fill-mode: both;
-}
-
-.input-field input[type]:focus + label {
-  color: #546e7a;
-}
-.input-field input[type]:focus {
-  border-bottom: 1px solid #546e7a;
-  box-shadow: 0 1px 0 0 #546e7a;
-}
 h2 {
   text-shadow: 3px 2px 2px rgba(93, 98, 98, 1);
   letter-spacing: 3px;
   color: white;
+  font-family: Roboto;
+  font-weight:bold;
+}
+h3 {
+  text-shadow: 3px 2px 2px rgba(93, 98, 98, 1);
+  letter-spacing: 3px;
+  color: white;
+  font-family: Roboto;
+  font-weight:300;
 }
 #submit, #l_submit {
   background-color: #90a4ae;
@@ -226,9 +245,6 @@ h2 {
 }
 #signup > .row {
   margin-bottom: 10px;
-}
-.text-danger {
-  color: red;
 }
 
 </style>

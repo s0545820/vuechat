@@ -13,10 +13,8 @@ export default {
     }
   },
   methods: {
-    logOut: function(e) {
-      e.preventDefault();
-      localStorage.deleteItem('jwt_token');
-      localStorage.deleteItem('refresh_token');
+    logOut: function() {
+      localStorage.clear();
       Materialize.toast('You have been successfully logged out.', 4000);
       router.push('/');
     }
@@ -28,9 +26,8 @@ export default {
 <style scoped>
 #logout {
   position: fixed;
-  top: 0;
+  top: 10px;
   right: 20px;
-  z-index: 100;
 }
 
 
