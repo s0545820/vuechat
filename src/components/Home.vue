@@ -156,7 +156,8 @@ export default {
             var user = {
               username: jwt_decode(localStorage.getItem('jwt_token')).username,
               email: jwt_decode(localStorage.getItem('jwt_token')).email,
-              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
+              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
+              user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id
             }
             localStorage.setItem('user', JSON.stringify(user));
             //Todo: Send request to server to set user 'online'

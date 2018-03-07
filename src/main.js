@@ -6,7 +6,10 @@ import router from './router'
 import axios from 'axios'
 import VeeValidate from 'vee-validate'
 import custom_messages from './assets/custom_messages'
+import socketio from 'socket.io-client';
+import VueSocketIO from 'vue-socket.io';
 
+Vue.use(VueSocketIO, socketio('http://localhost:3000/'));
 Vue.use(axios);
 Vue.use(VeeValidate, {
     dictionary: {

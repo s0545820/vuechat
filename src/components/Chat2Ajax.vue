@@ -14,16 +14,14 @@
             <a href="javascript:void(0)" class="closebtn" v-on:click="closeElement">&times;</a>
             <ul>
               <li class="row useritem" v-for="user in users">
-                  <span @click="selectPrivate(user)" class="btn small col s10 m10 l6 offset-l1 offset-s1 offset-m1">{{user.username}}</span>
+                  <span class="btn small col s10 m10 l6 offset-l1 offset-s1 offset-m1">{{user.username}}</span>
               </li>
             </ul>
         </div>
       </div>
       <div id="input-chat" class="row valign-wrapper">
-        <div v-if="!privatem" class="col s1 m1 l1 msgTo"><span>To: All</span></div>
-        <div v-else class="col s1 m1 l1 msgTo">To: {{selected.username}}</div>
-        <input id="inp" type="text" name="chat" class="col s7 m7 l9" v-model="message">
-        <button @click="sendMessage" class="btn-large col s2 m2 l1"><i class="material-icons right">send</i></button>
+        <input id="inp" type="text" name="chat" class="col s8 m8 l10" v-model="message">
+        <button @click="sendMessage" class="btn-large col s4 m4 l2">Send</button>
       </div>
     </div>
 </template>
@@ -32,6 +30,11 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import router from '../router/index';
+import Vue from 'vue';
+import socketio from 'socket.io-client';
+import VueSocketIO from 'vue-socket.io';
+//const SocketInstance = socketio('http://localhost:3000/');
+//Vue.use(VueSocketIO, SocketInstance);
 
 export default {
   name: 'chat',
@@ -39,44 +42,29 @@ export default {
     return {
       username: '',
       users: [],
-      messages: [],
-      message: '',
-      selected: {
-        socketid: '',
-        username: ''
-      },
-      privatem: false
+      messages: ['Frank: hey','Yoshi: Whats up?!'],
+      message: ''
     }
   },
   sockets: {
-    added: function(usr) {
-      this.users.push(usr);
-      Materialize.toast(usr.username + ' joined the chat!', 2000);
+    added: function(usrname) {
+      this.users.push({id: 45, username: usrname}); // GET USER BY ID (API) AND SAVE IN ARRAY
+      Materialize.toast(usrname + ' joined the chat!', 2000);
     },
-    disconnected: function(id) {
-      for(let i = 0; i < this.users.length; i++) {
-        if(this.users[i].socketid === id) {
-          this.users.splice(i,1);
-          Materialize.toast(this.users[i].username + ' disconnected', 2000);
+    disconnected: function(socketid) {
+      for(let user of this.users) {
+        if(user.socketid === socketid) {
+          this.users.splice(i, 1);
           break;
         }
-      };
+      }
+      Materialize.toast('User disconnected', 2000);
     },
     recieveMessage: function(msg) {
       this.messages.push(msg);
-    },
-    loadUsers: function(connected_users) {
-      this.users = connected_users;
     }
   },
   methods: {
-    selectPrivate: function(user) {
-      this.selected.socketid = user.socketid;
-      this.selected.username = user.username;
-      this.privatem = true;
-      //Left to the input make a div with "To: Username"
-      this.closeElement();
-    },
     disconnect: function() {
 
       router.push('/profile');
@@ -84,18 +72,17 @@ export default {
       this.$socket.emit('disc');
     },
     sendMessage: function() {
-      if(this.privatem == true) {
-        this.sendPrivateMessage();
-      } else {
-        var msg = this.username + ': ' + this.message;
-        this.$socket.emit('chat message', msg);
-        this.message = '';
-      }
+      var msg = this.username + ': ' + this.message;
+      this.$socket.emit('chat message', msg);
+      this.message = '';
     },
     sendPrivateMessage: function() {
+      var user = this.users.filter(function( puser ) {
+        return puser.username == 'user1';
+      });
       var daten = {
-        msg: this.username + ' > ' + this.selected.username + ': ' + this.message,
-        socketid: this.selected.socketid
+        msg: this.username + ': ' + this.message,
+        socketid: user[0].socketid
       }
       this.$socket.emit('private-message', daten);
       this.message = '';
@@ -144,18 +131,18 @@ export default {
     }
   },
   created: function () {
+    const SocketInstance = socketio('http://localhost:3000/');
+    this.use(VueSocketIO, SocketInstance);
     var self = this;
     var decoded = jwt_decode(localStorage.getItem('jwt_token'));
     if(decoded.exp*1000 > Date.now()) {
       var user = JSON.parse(localStorage['user']);
       if(user.isVerified) {
         this.username = user.username;
-        var joined_user = {
-          username: user.username,
-          user_id: user.user_id
-        };
-        this.$socket.emit('joined', joined_user);
-        Materialize.toast('Welcome ' + user.username, 2000);
+        var id = self.$socket.id;
+        this.setStatusAndSocket(1, id);
+        this.loadUsers();
+        this.$socket.emit('joined', user.user_id);
       } else {
         router.push('/profile');
       }
@@ -168,6 +155,7 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+
 
 #logout {
   position: fixed;
@@ -237,20 +225,6 @@ export default {
 }
 .useritem {
   margin-bottom: 10px;
-}
-li:nth-child(even) {
-  background:red;
-}
-div.col.s1.m1.l1.msgTo {
-  word-break:normal;
-  margin-left: 0px;
-}
-.btn-large.col.s2.m2.l1 {
-  margin-left: 20px;
-  margin-right:10px;
-}
-.material-icons.right {
-  margin:0;
 }
 
 
