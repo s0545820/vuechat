@@ -19,11 +19,27 @@
             </ul>
         </div>
       </div>
+      <div class="row">
+        <div v-if="!privatem" class="show-on-small col s12 msgTo">
+          <span class="toWhom">To: All</span>
+        </div>
+        <div v-else class="show-on-small col s12 msgTo"><span class="toWhom">To: {{selected.username}}</span>
+            <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
+        </div>
+      </div>
       <div id="input-chat" class="row valign-wrapper">
-        <div v-if="!privatem" class="col s1 m1 l1 msgTo"><span>To: All</span></div>
-        <div v-else class="col s1 m1 l1 msgTo">To: {{selected.username}}</div>
-        <input id="inp" type="text" name="chat" class="col s7 m7 l9" v-model="message">
-        <button @click="sendMessage" class="btn-large col s2 m2 l1"><i class="material-icons right">send</i></button>
+        <div v-if="!privatem" class="hide-on-small-only col m2 l2 msgTo">
+          <span>To: All</span>
+        </div>
+        <div v-else class="hide-on-small-only col m2 l2 msgTo">To: {{selected.username}}
+            <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
+        </div>
+        <input id="inp" type="text" name="chat" class="col s8 m8 l8" v-model="message">
+        <div class="class col s4 m2 l2">
+          <button @click="sendMessage" class="btn-large col s12 m10 l10 offset-l1 offset-m1">
+            <i class="material-icons right col s12 m12 l12">send</i>
+          </button>
+        </div>
       </div>
     </div>
 </template>
@@ -56,8 +72,8 @@ export default {
     disconnected: function(id) {
       for(let i = 0; i < this.users.length; i++) {
         if(this.users[i].socketid === id) {
-          this.users.splice(i,1);
           Materialize.toast(this.users[i].username + ' disconnected', 2000);
+          this.users.splice(i,1);
           break;
         }
       };
@@ -78,10 +94,9 @@ export default {
       this.closeElement();
     },
     disconnect: function() {
-
+      this.$socket.disconnect();
+      location.reload();
       router.push('/profile');
-      Materialize.toast('You left the chat', 2000);
-      this.$socket.emit('disc');
     },
     sendMessage: function() {
       if(this.privatem == true) {
@@ -145,7 +160,35 @@ export default {
   },
   created: function () {
     var self = this;
-    var decoded = jwt_decode(localStorage.getItem('jwt_token'));
+    var token = localStorage.getItem('jwt_token');
+    if(token) {
+      var decoded = jwt_decode(token);
+      if(decoded.exp*1000 > Date.now()) {
+        var user = JSON.parse(localStorage['user']);
+        if(user.isVerified) {
+          this.username = user.username;
+          var joined_user = {
+            username: user.username,
+            user_id: user.user_id
+          };
+          this.$socket.emit('joined', joined_user);
+          Materialize.toast('Welcome ' + user.username, 2000);
+        } else {
+          Materialize.toast('Please verify your account first',2000);
+          router.push('/profile');
+        }
+      } else {
+        alert('expired');
+        router.push('/');
+      }
+    } else {
+      router.push('/');
+    }
+
+
+
+
+    /*var decoded = jwt_decode(localStorage.getItem('jwt_token'));
     if(decoded.exp*1000 > Date.now()) {
       var user = JSON.parse(localStorage['user']);
       if(user.isVerified) {
@@ -157,11 +200,13 @@ export default {
         this.$socket.emit('joined', joined_user);
         Materialize.toast('Welcome ' + user.username, 2000);
       } else {
+        alert('expired');
         router.push('/profile');
       }
     } else {
+      alert('not logged in');
       router.push('/');
-    }
+    }*/
   }
 }
 </script>
@@ -238,19 +283,14 @@ export default {
 .useritem {
   margin-bottom: 10px;
 }
-li:nth-child(even) {
+#messages li:nth-child(even) {
   background:red;
 }
-div.col.s1.m1.l1.msgTo {
-  word-break:normal;
-  margin-left: 0px;
+#clear {
+  cursor: pointer;
 }
-.btn-large.col.s2.m2.l1 {
-  margin-left: 20px;
-  margin-right:10px;
-}
-.material-icons.right {
-  margin:0;
+#clear:hover {
+  color:#f44336;
 }
 
 
