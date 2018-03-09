@@ -1,47 +1,55 @@
 <template>
-    <div>
+  <div class="grey lighten-2">
+    <div class="container">
       <div id="chat" class="row">
-        <div id="chat-messages" class="col s12 m12 l12 yellow">
-          <ul id="messages">
-            <li v-for="message in messages">
-              {{message}}
-            </li>
-            <button v-on:click="disconnect">disconnect</button>
-          </ul>
+        <div id="chat-messages" class="col s12 m12 l12">
+          <div id="disconnect" class="row">
+            <button id="discn" class="deep-orange lighten-1 btn col s8 m6 l2 offset-s2 offset-m3 offset-l5"v-on:click="disconnect">disconnect</button>
+          </div>
+          <div id="msgs">
+            <ul id="messages-list">
+              <li v-for="message in messages">
+                <span>{{message.from}}: {{message.msg}}</span>
+              </li>
+            </ul>
+          </div>
+          <div id="toWh" class="row hide-on-med-and-up">
+            <div v-if="!privatem" class="col s12 msgTo">
+              <span class="toWhom">To: All</span>
+            </div>
+            <div v-else class="col s12 msgTo"><span class="toWhom">To: {{selected.username}}</span>
+                <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
+            </div>
+          </div>
         </div>
         <span id="menuCollaps" v-on:click="showElement">&#9776;</span>
-        <div id="users" class="sidenav">
-            <a href="javascript:void(0)" class="closebtn" v-on:click="closeElement">&times;</a>
+        <div id="users" class="sidenav grey lighten-1">
+            <a href="javascript:void(0)" id="closebtn" v-on:click="closeElement">&times;</a>
             <ul>
               <li class="row useritem" v-for="user in users">
-                  <span @click="selectPrivate(user)" class="btn small col s10 m10 l6 offset-l1 offset-s1 offset-m1">{{user.username}}</span>
+                  <span @click="selectPrivate(user)" class="deep-orange lighten-1 btn small col s10 m10 l8 offset-l2 offset-s1 offset-m1">{{user.username}}</span>
               </li>
             </ul>
         </div>
       </div>
-      <div class="row">
-        <div v-if="!privatem" class="show-on-small col s12 msgTo">
-          <span class="toWhom">To: All</span>
+      <form v-on:submit="sendMessage">
+        <div id="input-chat" class="row valign-wrapper">
+          <div v-if="!privatem" class="hide-on-small-only col m2 l2 msgTo">
+            <span>To: All</span>
+          </div>
+          <div v-else class="hide-on-small-only col m2 l2 msgTo">To: {{selected.username}}
+              <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
+          </div>
+          <input id="inp" type="text" name="chat" class="col s8 m8 l8" v-model="message">
+          <div class="class col s4 m2 l2">
+            <button id="submit" :disabled="!message" type="submit" name="submit" class="deep-orange lighten-1 btn-large col s12 m10 l10 offset-l1 offset-m1">
+              <i class="material-icons right col s12 m12 l12">send</i>
+            </button>
+          </div>
         </div>
-        <div v-else class="show-on-small col s12 msgTo"><span class="toWhom">To: {{selected.username}}</span>
-            <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
-        </div>
-      </div>
-      <div id="input-chat" class="row valign-wrapper">
-        <div v-if="!privatem" class="hide-on-small-only col m2 l2 msgTo">
-          <span>To: All</span>
-        </div>
-        <div v-else class="hide-on-small-only col m2 l2 msgTo">To: {{selected.username}}
-            <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
-        </div>
-        <input id="inp" type="text" name="chat" class="col s8 m8 l8" v-model="message">
-        <div class="class col s4 m2 l2">
-          <button @click="sendMessage" class="btn-large col s12 m10 l10 offset-l1 offset-m1">
-            <i class="material-icons right col s12 m12 l12">send</i>
-          </button>
-        </div>
-      </div>
+      </form>
     </div>
+  </div>
 </template>
 <script>
 
@@ -79,7 +87,12 @@ export default {
       };
     },
     recieveMessage: function(msg) {
-      this.messages.push(msg);
+      if(msg.to) {
+        this.messages.push({from: msg.from + ' > ' + msg.to, msg: msg.msg});
+      } else {
+        this.messages.push({from: msg.from, msg: msg.msg});
+      }
+      $('#msgs').animate({scrollTop: $('#msgs').height() + $('#msgs').height()});
     },
     loadUsers: function(connected_users) {
       this.users = connected_users;
@@ -90,7 +103,6 @@ export default {
       this.selected.socketid = user.socketid;
       this.selected.username = user.username;
       this.privatem = true;
-      //Left to the input make a div with "To: Username"
       this.closeElement();
     },
     disconnect: function() {
@@ -98,18 +110,28 @@ export default {
       location.reload();
       router.push('/profile');
     },
-    sendMessage: function() {
+    sendMessage: function(e) {
+      e.preventDefault();
       if(this.privatem == true) {
         this.sendPrivateMessage();
       } else {
-        var msg = this.username + ': ' + this.message;
+        var msg = {
+          from: this.username,
+          msg: this.message
+        }
+        //var msg = this.username + ': ' + this.message;
         this.$socket.emit('chat message', msg);
         this.message = '';
       }
     },
     sendPrivateMessage: function() {
       var daten = {
-        msg: this.username + ' > ' + this.selected.username + ': ' + this.message,
+        msg: {
+          from: this.username,
+          to: this.selected.username,
+          msg: this.message
+        },
+        //msg: this.username + ' > ' + this.selected.username + ': ' + this.message,
         socketid: this.selected.socketid
       }
       this.$socket.emit('private-message', daten);
@@ -178,74 +200,71 @@ export default {
           router.push('/profile');
         }
       } else {
-        alert('expired');
         router.push('/');
       }
     } else {
       router.push('/');
     }
-
-
-
-
-    /*var decoded = jwt_decode(localStorage.getItem('jwt_token'));
-    if(decoded.exp*1000 > Date.now()) {
-      var user = JSON.parse(localStorage['user']);
-      if(user.isVerified) {
-        this.username = user.username;
-        var joined_user = {
-          username: user.username,
-          user_id: user.user_id
-        };
-        this.$socket.emit('joined', joined_user);
-        Materialize.toast('Welcome ' + user.username, 2000);
-      } else {
-        alert('expired');
-        router.push('/profile');
-      }
-    } else {
-      alert('not logged in');
-      router.push('/');
-    }*/
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.fixed-bottom {
 
-#logout {
-  position: fixed;
-  top: 10px;
-  right: 20px;
+}
+.container {
+  height: 100vh;
 }
 #chat {
-  position: absolute;
-  height:30%;
-  width: 100%;
-  margin-bottom: 0px;
-
+  height:90vh;
+}
+#chat-messages {
+  height: 80vh
 }
 #input-chat {
-  position: fixed;
-  bottom:0;
-  height: 10%;
-  width: 100%;
-  background-color: red;
+  height:10vh;
 }
-
+#disconnect {
+  padding-bottom:30px;
+}
+#msgs {
+  height: 100%;
+  overflow-y: auto;
+}
+#discn {
+  height: 30px;
+  line-height: 30px;
+}
+#closebtn {
+  position: absolute;
+  top: 0;
+  right: 25px;
+  font-size: 36px;
+  margin-left: 50px;
+}
+#toWh {
+  position:fixed;
+  bottom:7vh;
+  left:10px;
+  color: #404040;
+  font-size: 15px;
+}
 #inp {
   margin-bottom:0px;
 }
 .row {
   margin: 0px;
 }
+
 #menuCollaps {
   position:fixed;
   right:10px;
   top: 0px;
-  font-size:30px;
-  cursor:pointer
+  font-size:40px;
+  cursor:pointer;
+  color: #404040;
 }
 .sidenav {
     height: 90%;
@@ -254,25 +273,22 @@ export default {
     z-index: 1;
     top: 0;
     right: 0;
-    background-color: yellow;
     overflow-x: hidden;
     transition: 0.5s;
     padding-top: 60px;
     display: none;
-}
-.sidenav .closebtn {
-    position: absolute;
-    top: 0;
-    right: 25px;
-    font-size: 36px;
-    margin-left: 50px;
 }
 @media screen and (max-width: 991px) {
   .sidenav {
     width: 100%;
   }
   #menuCollaps {
-    font-size:60px;
+    font-size:40px;
+  }
+}
+@media screen and (max-width: 600px) {
+  #menuCollaps {
+    font-size:50px;
   }
 }
 .btn.small {
@@ -283,15 +299,37 @@ export default {
 .useritem {
   margin-bottom: 10px;
 }
-#messages li:nth-child(even) {
-  background:red;
+#messages-list li:nth-child(even) {
+  background:#bdbdbd;
+}
+#messages-list li {
+  padding-left: 10px;
+  color: #404040;
+  font-size: 20px;
+  padding-top:3px;
+  padding-bottom: 3px;
 }
 #clear {
   cursor: pointer;
+  font-size: 25px;
+  position: relative;
+  top:8px;
 }
 #clear:hover {
   color:#f44336;
 }
+#closebtn {
+  color: #404040;
+  font-size: 50px;
+}
+#inp:focus {
+  border-bottom: 1px solid #546e7a;
+  box-shadow: 0 1px 0 0 #546e7a;
+}
+#submit:disabled {
+  background-color: red;
+}
+
 
 
 </style>

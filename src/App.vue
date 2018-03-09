@@ -81,11 +81,7 @@ input:-webkit-autofill {
     -webkit-animation-fill-mode: both;
 }
 
-.input-field input[type]:focus + label {
+.input-field > input[type]:focus + label {
   color: #546e7a;
-}
-.input-field input[type]:focus {
-  border-bottom: 1px solid #546e7a;
-  box-shadow: 0 1px 0 0 #546e7a;
 }
 </style>

@@ -12,7 +12,7 @@
         <div id="signup" class="col s12 col m6 offset-m3"><!--Signup Form-->
           <div class="row">
             <div class="input-field col s10 offset-s1">
-              <input id="username" name="username" type="text" v-model="credentials.username" v-validate="'required'">
+              <input id="username" name="username" type="text" v-model="credentials.username" v-validate="'required|max:15'">
               <span v-show="errors.has('username')" class="text-danger">{{ errors.first('username') }}</span>
               <label for="username">Username</label>
             </div>
@@ -246,6 +246,10 @@ h3 {
 }
 #signup > .row {
   margin-bottom: 10px;
+}
+#username:focus,#email:focus,#password:focus,#passwordConfirm:focus,#l_username:focus,#l_password:focus {
+  border-bottom: 1px solid #546e7a;
+  box-shadow: 0 1px 0 0 #546e7a;
 }
 
 </style>

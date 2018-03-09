@@ -82,4 +82,8 @@ export default {
 .btn:hover {
   background-color: #546e7a;
 }
+#passwor:focus,#passwordConfirm:focus {
+  border-bottom: 1px solid #546e7a;
+  box-shadow: 0 1px 0 0 #546e7a;
+}
 </style>

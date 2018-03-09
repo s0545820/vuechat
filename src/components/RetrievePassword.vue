@@ -86,5 +86,9 @@ export default {
 ::-ms-input-placeholder {
     color: #90a4ae;
 }
+#email:focus {
+  border-bottom: 1px solid #546e7a;
+  box-shadow: 0 1px 0 0 #546e7a;
+}
 
 </style>

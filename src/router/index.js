@@ -6,7 +6,6 @@ import RetrievePassword from '@/components/RetrievePassword'
 import NewPassword from '@/components/NewPassword'
 import Verification from '@/components/Verification'
 import Chat from '@/components/Chat'
-import test from '@/components/testsocket'
 
 Vue.use(Router)
 
@@ -41,11 +40,6 @@ export default new Router({
       path: '/chat',
       name: 'chat',
       component: Chat
-    },
-    {
-      path: '/test',
-      name: 'test',
-      component: test
     }
 
   ]
