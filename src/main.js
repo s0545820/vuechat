@@ -13,7 +13,7 @@ const VueHello = require('vue-hellojs');
 HelloJs.init({
   facebook: 1736281499762296
 }, {
-  redirect_uri: '/profile'
+  redirect_uri: '/'
 });
 
 Vue.use(VueHello, HelloJs);
