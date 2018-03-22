@@ -38,7 +38,7 @@ export default {
         var self = this;
         this.$validator.validateAll().then((result) => {
           if (result) {
-            $.post("http://localhost:3000/api/reset/", {token: self.$route.params.token, password: self.password}, function(result){
+            $.post("https://cryptic-savannah-75374.herokuapp.com/api/reset/", {token: self.$route.params.token, password: self.password}, function(result){
               router.push('/');
               Materialize.toast('Your password has been changed.',4000);
             }).fail(function(jqXHR, textStatus, errorThrown) {

@@ -31,7 +31,7 @@ export default {
           var diff = decoded.exp*1000 - comp_date;
           if(diff <= 300000) {
             $.ajax({
-              url: "http://localhost:3000/api/refreshtoken",
+              url: "https://cryptic-savannah-75374.herokuapp.com/api/refreshtoken",
               type: 'POST',
               headers: {"x-refresh-token": localStorage.getItem('jwt_token')},
               success: function(data) {
@@ -64,6 +64,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
 }
+/*html {
+  background-color: red;
+}*/
 .text-danger {
   color: #f44336;
   font-weight: bold;

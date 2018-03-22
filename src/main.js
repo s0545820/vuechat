@@ -3,14 +3,21 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import axios from 'axios'
 import VeeValidate from 'vee-validate'
 import custom_messages from './assets/custom_messages'
 import socketio from 'socket.io-client';
 import VueSocketIO from 'vue-socket.io';
+const HelloJs = require('hellojs/dist/hello.all.min.js');
+const VueHello = require('vue-hellojs');
 
-Vue.use(VueSocketIO, socketio('http://localhost:3000/'));
-Vue.use(axios);
+HelloJs.init({
+  facebook: 1736281499762296
+}, {
+  redirect_uri: '/profile'
+});
+
+Vue.use(VueHello, HelloJs);
+Vue.use(VueSocketIO, socketio('https://cryptic-savannah-75374.herokuapp.com/'));
 Vue.use(VeeValidate, {
     dictionary: {
         en: { messages: custom_messages }

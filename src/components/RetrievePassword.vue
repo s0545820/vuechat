@@ -32,7 +32,7 @@ export default {
       var self = this;
       this.$validator.validateAll().then((result) => {
         if (result) {
-          $.post("http://localhost:3000/api/forgot/", {email: self.email}, function(result){
+          $.post("https://cryptic-savannah-75374.herokuapp.com/api/forgot/", {email: self.email}, function(result){
             Materialize.toast('Please check your email for further instructions.', 4000);
           }).fail(function(jqXHR, textStatus, errorThrown) {
               if(jqXHR.status == 404) {

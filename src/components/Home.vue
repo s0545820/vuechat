@@ -6,7 +6,6 @@
         <h3>Start chatting right now!</h3>
       </div>
     </div>
-
     <div class="row" id="forms">
       <form v-on:submit="signUp">
         <div id="signup" class="col s12 col m6 offset-m3"><!--Signup Form-->
@@ -63,12 +62,17 @@
               </div>
             </div>
             <div class="row">
-              <div class="">
+              <div class="col s12 m12 l10 offset-l1">
                 <button id="l_submit" name="submit" type="submit" class="btn">Log In</button>
               </div>
             </div>
           </div>
         </form>
+        <div class="row">
+          <div class="col s10 m8 l6 offset-s1 offset-m2 offset-l3">
+            <button id="fblog" class="btn col s10 m10 l6 offset-s1 offset-m1 offset-l3" @click="auth('facebook')">Login with Facebook</button>
+          </div>
+        </div>
         <div class="row">
           <div class="col s12 m8 l6 offset-m2 offset-l3">
             <div class="col s6 m6 l6">
@@ -121,7 +125,7 @@ export default {
             email: self.credentials.email,
             password: self.credentials.password,
           };
-          $.post("http://localhost:3000/api/register", newUser, function(result){
+          $.post("https://cryptic-savannah-75374.herokuapp.com/api/register", newUser, function(result){
             localStorage.setItem('jwt_token', result.jwt_token);
             localStorage.setItem('refresh_token', result.refresh_token);
             var user = {
@@ -150,7 +154,7 @@ export default {
             username: self.logincreds.username,
             password: self.logincreds.password
           };
-          $.post("http://localhost:3000/api/login", user, function(result){
+          $.post("https://cryptic-savannah-75374.herokuapp.com/api/login", user, function(result){
             localStorage.setItem('jwt_token', result.jwt_token);
             localStorage.setItem('refresh_token', result.refresh_token);
             var user = {
@@ -174,6 +178,30 @@ export default {
           });
         }
       });
+    },
+    auth(network) {
+      const hello = this.hello;
+      var self = this;
+      hello.login(network,{}).then(function() {
+        const authRes = hello(network).getAuthResponse();
+        $.post("https://cryptic-savannah-75374.herokuapp.com/api/sociallogin", {access_token: authRes.access_token}, function(result){
+          localStorage.setItem('jwt_token', result.jwt_token);
+          localStorage.setItem('refresh_token', result.refresh_token);
+          localStorage.setItem('user', JSON.stringify(result.user));
+          router.push('/profile');
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            if(jqXHR.status == 404) {
+              console.log(JSON.parse(jqXHR.responseText));
+              Materialize.toast(errorThrown,4000);
+            }
+        });
+
+
+
+
+
+        //hello.logout('facebook');
+      })
     }
   },
   created: function() {
@@ -250,6 +278,11 @@ h3 {
 #username:focus,#email:focus,#password:focus,#passwordConfirm:focus,#l_username:focus,#l_password:focus {
   border-bottom: 1px solid #546e7a;
   box-shadow: 0 1px 0 0 #546e7a;
+}
+#fblog {
+  background-color: #3b5998;
+  font-size: 0.7em;
+  padding: 0;
 }
 
 </style>

@@ -34,7 +34,7 @@ export default {
   created: function () {
     var self = this;
     var token = this.$route.params.token;
-    $.post("http://localhost:3000/api/verify/" + token, function(result){
+    $.post("https://cryptic-savannah-75374.herokuapp.com/api/verify/" + token, function(result){
       self.isVerified = true;
       if(localStorage['user']) {
         var user = JSON.parse(localStorage['user']);
