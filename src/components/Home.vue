@@ -1,5 +1,5 @@
 <template>
-  <div id="container" class="yellow">
+  <div id="container">
     <div class="row">
       <div class="col s12 m12 l12 halfheight">
         <h2>Vuechat</h2>
@@ -131,7 +131,7 @@ export default {
             var user = {
               username: jwt_decode(localStorage.getItem('jwt_token')).username,
               email: jwt_decode(localStorage.getItem('jwt_token')).email,
-              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified
+              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
             }
             localStorage.setItem('user', JSON.stringify(user));
             router.push('/profile');
@@ -161,7 +161,9 @@ export default {
               username: jwt_decode(localStorage.getItem('jwt_token')).username,
               email: jwt_decode(localStorage.getItem('jwt_token')).email,
               isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
-              user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id
+              user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id,
+              role: jwt_decode(localStorage.getItem('jwt_token')).role,
+              banned: jwt_decode(localStorage.getItem('jwt_token')).banned
             }
             localStorage.setItem('user', JSON.stringify(user));
             //Todo: Send request to server to set user 'online'
@@ -216,6 +218,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+body {
+  background-color: red;
+}
 #container {
   text-align: center;
   height: 100vh;

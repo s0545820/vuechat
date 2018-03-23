@@ -1,15 +1,40 @@
 <template>
-    <div v-if="this.auth" class="container yellow">
+    <div v-if="this.auth" class="container">
       <button id="logout" class="btn red" v-on:click="logOut">Logout</button>
-      <div class="authtext">
+      <!--Admin view-->
+      <div v-if="role == 'admin'" id="admin" class="row">
+        <div id="bannedUsers" class="col s12 l5">
+          <div>
+            <h5 style="text-decoration: underline;">Banned Users</h5>
+            <p v-show="banned_users === undefined || banned_users.length == 0">Ban 'em all!</p>
+            <ul id="banlist">
+                <li class="row" v-for="user in banned_users">
+                  <span id="bannedname" class="col s6 m6 l6">{{user.username}}</span>
+                  <span class="col s6 m6 l6">
+                    <i @click="unbanUser(user._id)" class="col s8 m8 l4 material-icons green lighten-1 btn small" title="unban user">mood</i>
+                  </span>
+                </li>
+            </ul>
+          </div>
+        </div>
+        <div class="col s12 l7">
+            <h3>{{ name }}</h3>
+            <div>
+              <router-link id="enteradmin" :to="'chat'" class="waves-effect btn-large">enter chat</router-link>
+            </div>
+        </div>
+      </div>
+      <!--Admin view end-->
+      <div v-else id="auth" class="row">
         <img  v-show="social" id="profile_pic" v-bind:src="pictureURL" width="200" height="200">
         <h3>{{ name }}</h3>
         <div>
           <span v-on:click="sendVerification" v-if="!isVerified" class="btn small light-blue darken-4">verify</span>
         </div>
         <div>
-          <router-link :to="'chat'" class="waves-effect btn-large" :disabled="!isVerified">enter chat</router-link><!--Implement router link to chat component-->
+          <router-link :to="'chat'" class="waves-effect btn-large" :disabled="!isVerified || banned">enter chat</router-link>
           <p v-show="!isVerified" class="text-danger">Verify your account to enter the chat</p>
+          <p v-show="banned" class="text-danger">Your account is banned.</p>
         </div>
       </div>
       <div v-show="loading" id="overlay">
@@ -18,6 +43,9 @@
         </div>
       </div>
     </div>
+
+
+
     <div  v-else-if="!this.auth" class="container red">
       <div class="noauthtext">
         <h2>Please</h2>
@@ -42,7 +70,10 @@ export default {
       auth: false,
       loading: false,
       pictureURL: '',
-      social: false
+      social: false,
+      role: '',
+      banned: false,
+      banned_users: []
     }
   },
   methods: {
@@ -67,18 +98,61 @@ export default {
           Materialize.toast('Something went wrong. Please try again.',4000);
         }
       });
+    },
+    unbanUser: function(userid) {
+      var self = this;
+      $.ajax({
+        url: "https://cryptic-savannah-75374.herokuapp.com/api/users/unban",
+        type: 'POST',
+        headers: {"x-access-token": localStorage.getItem('jwt_token')},
+        data: { userid: userid },
+        success: function(data) {
+          for(let i = 0; i < self.banned_users.length; i++) {
+            if(self.banned_users[i]._id === userid) {
+              self.banned_users.splice(i,1);
+              break;
+            }
+          };
+          Materialize.toast('User has been unbanned.',2000);
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+          Materialize.toast('Something went wrong. Please try again.',4000);
+        }
+      });
     }
   },
   created: function () {
+    var self = this;
     var decoded = jwt_decode(localStorage.getItem('jwt_token'));
     if(decoded.exp*1000 > Date.now()) {
       this.auth = true;
       var user = JSON.parse(localStorage['user']);
+      if (user.role == 'admin') {
+        $.ajax({
+          url: "https://cryptic-savannah-75374.herokuapp.com/api/users/",
+          type: 'GET',
+          headers: {"x-access-token": localStorage.getItem('jwt_token')},
+          success: function(data) {
+            for(var i=0;i<data.users.length;i++) {
+              if(data.users[i].banned) {
+                self.banned_users.push(data.users[i]);
+              }
+            }
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            Materialize.toast('Could not load banned users. Please refresh the page.',4000);
+          }
+        });
+      }
       this.name = user.username;
       this.mail = user.email;
+      this.banned = user.banned;
+      this.role = user.role;
       this.isVerified = user.isVerified;
-      this.pictureURL = user.picture.data.url;
       this.social = user.social;
+      if(this.social) {
+        this.pictureURL = user.picture.data.url;
+      }
     };
   }
 }
@@ -109,22 +183,12 @@ export default {
 :disabled {
   background: rgba(255,238,88,0.9);
 }
-.container {
-  position: absolute;
-  top: 0;
-  right: 0;
-  min-width: 100%;
-  height: 100vh;
-}
+
 .noauthtext {
   text-align: center;
   margin-top: 200px;
 }
-.authtext {
-  text-align: center;
-  margin-top: 200px;
-  word-wrap: break-word;
-}
+
 .btn.small {
   height: 24px;
   line-height: 24px;
@@ -153,5 +217,31 @@ span {
 }
 #profile_pic {
   border-radius: 1000px;
+}
+
+#auth {
+  padding-top: 100px;
+  text-align: center;
+}
+#admin {
+    padding-top: 200px;
+}
+#enteradmin {
+  margin-top:20px;
+}
+#bannedname {
+  font-size: 1.4rem;
+  color: #d32f2f;
+  word-wrap: break-word;
+}
+#bannedUsers {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+@media screen and (max-width: 991px) {
+  #admin {
+    text-align: center;
+    padding-top: 100px;
+  }
 }
 </style>

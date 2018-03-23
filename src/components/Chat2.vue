@@ -1,25 +1,17 @@
 <template>
-  <!--<div class="grey lighten-2">-->
+  <div class="grey lighten-2">
     <div class="container">
+      <div id="disconnect" class="row">
+        <button id="discn" class="deep-orange lighten-1 btn col s8 m6 l2 offset-s2 offset-m3 offset-l5"v-on:click="disconnect">disconnect</button>
+      </div>
       <div id="chat" class="row">
         <div id="chat-messages" class="col s12 m12 l12">
-          <div id="disconnect" class="row">
-            <button id="discn" class="deep-orange lighten-1 btn col s8 m6 l2 offset-s2 offset-m3 offset-l5"v-on:click="disconnect">disconnect</button>
-          </div>
           <div id="msgs">
             <ul id="messages-list">
               <li v-for="message in messages">
                 <span>{{message.from}}: {{message.msg}}</span>
               </li>
             </ul>
-          </div>
-          <div id="toWh" class="row hide-on-med-and-up">
-            <div v-if="!privatem" class="col s12 msgTo">
-              <span class="toWhom">To: All</span>
-            </div>
-            <div v-else class="col s12 msgTo"><span class="toWhom">To: {{selected.username}}</span>
-                <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
-            </div>
           </div>
         </div>
         <span id="menuCollaps" v-on:click="showElement">&#9776;</span>
@@ -30,6 +22,14 @@
                   <span @click="selectPrivate(user)" class="deep-orange lighten-1 btn small col s10 m10 l8 offset-l2 offset-s1 offset-m1">{{user.username}}</span>
               </li>
             </ul>
+        </div>
+      </div>
+      <div id="toWh" class="hide-on-med-and-up">
+        <div v-if="!privatem" style="padding-top:10px;" class="col s12 msgTo">
+          <span class="toWhom">To: All</span>
+        </div>
+        <div v-else class="col s12 msgTo"><span class="toWhom">To: {{selected.username}}</span>
+            <i @click="privatem = false" id="clear" class="tiny material-icons">close</i>
         </div>
       </div>
       <form v-on:submit="sendMessage">
@@ -49,7 +49,7 @@
         </div>
       </form>
     </div>
-  <!--</div>-->
+  </div>
 </template>
 <script>
 
@@ -92,7 +92,7 @@ export default {
       } else {
         this.messages.push({from: msg.from, msg: msg.msg});
       }
-      $('#msgs').animate({scrollTop: $('#msgs').height() + $('#msgs').height()});
+      $('#chat-messages').animate({scrollTop: $('#chat-messages').height() + $('#chat-messages').height()});
     },
     loadUsers: function(connected_users) {
       this.users = connected_users;
@@ -185,20 +185,21 @@ export default {
   height: 100vh;
 }
 #chat {
-  height:90vh;
+  height:80vh;
 }
 #chat-messages {
-  height: 80vh
+  height: 80vh;
+  overflow-y: auto;
 }
 #input-chat {
   height:10vh;
 }
 #disconnect {
-  padding-bottom:30px;
+  height: 5vh;
 }
 #msgs {
-  height: 100%;
-  overflow-y: auto;
+  /*height: 100%;*/
+  /*overflow-y: auto;*/
 }
 #discn {
   height: 30px;
@@ -212,9 +213,10 @@ export default {
   margin-left: 50px;
 }
 #toWh {
-  position:fixed;
+  /*position:fixed;
   bottom:7vh;
-  left:10px;
+  left:10px;*/
+  height: 5vh;
   color: #404040;
   font-size: 15px;
 }
@@ -256,6 +258,11 @@ export default {
 @media screen and (max-width: 600px) {
   #menuCollaps {
     font-size:50px;
+  }
+}
+@media screen and (min-width: 992px) {
+  #chat, #chat-messages {
+    height:85vh;
   }
 }
 .btn.small {

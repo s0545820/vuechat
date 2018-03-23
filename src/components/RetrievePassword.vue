@@ -1,5 +1,5 @@
 <template>
-  <div id="outerdiv" class="yellow">
+  <div id="outerdiv">
     <form @submit="submitForm">
       <div class="row padded">
         <div class="input-field col s12 m6 l6 offset-l3 offset-m3">

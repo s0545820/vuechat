@@ -64,9 +64,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
 }
-/*html {
-  background-color: red;
-}*/
+body {
+  background-color: #ffcc80;
+}
 .text-danger {
   color: #f44336;
   font-weight: bold;

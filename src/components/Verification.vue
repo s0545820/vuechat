@@ -1,5 +1,5 @@
 <template>
-  <div class="container yellow">
+  <div class="container">
       <!--<div class="info" v-if="isVerified">
         <p>Thank you for verificating your email. You can now go to your
           <router-link class="btn" to="/profile">profile</router-link>

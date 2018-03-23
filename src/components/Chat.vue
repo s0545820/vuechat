@@ -19,7 +19,13 @@
             <a href="javascript:void(0)" id="closebtn" v-on:click="closeElement">&times;</a>
             <ul>
               <li class="row useritem" v-for="user in users">
-                  <span @click="selectPrivate(user)" class="deep-orange lighten-1 btn small col s10 m10 l8 offset-l2 offset-s1 offset-m1">{{user.username}}</span>
+                  <span @click="selectPrivate(user)" class="deep-orange lighten-1 btn small col s7 m8 l6 offset-l1 offset-s1 offset-m1">{{user.username}}</span>
+                  <span class="col l2 m1 s2" v-if="role == 'admin' || role == 'mod'">
+                    <i @click="kickUser(user.socketid)" class="material-icons deep-orange lighten-1 btn small col l10 m12 offset-l6 offset-m3 offset-s6" title="kick user">sentiment_very_dissatisfied</i>
+                  </span>
+                  <span class="col l2 m1 s2" v-if="role == 'admin'">
+                    <i @click="banUser(user.socketid, user.user_id)" class="material-icons deep-orange lighten-1 btn small col l10 m12" title="ban user">block</i>
+                  </span>
               </li>
             </ul>
         </div>
@@ -69,7 +75,9 @@ export default {
         socketid: '',
         username: ''
       },
-      privatem: false
+      privatem: false,
+      role: '',
+      social: false
     }
   },
   sockets: {
@@ -96,6 +104,17 @@ export default {
     },
     loadUsers: function(connected_users) {
       this.users = connected_users;
+    },
+    kicked: function() {
+      this.disconnect();
+      Materialize.toast('You have been kicked from the chat.', 2000)
+    },
+    banned: function() {
+      var user = JSON.parse(localStorage['user']);
+      user.banned = true;
+      localStorage.setItem('user', JSON.stringify(user));
+      this.disconnect();
+      Materialize.toast('You have been banned.', 2000);
     }
   },
   methods: {
@@ -137,6 +156,26 @@ export default {
       this.$socket.emit('private-message', daten);
       this.message = '';
     },
+    kickUser: function(socketid) {
+      this.$socket.emit('kick', socketid);
+    },
+    banUser: function(socketid, userid) {
+      var self = this;
+      $.ajax({
+        url: "https://cryptic-savannah-75374.herokuapp.com/api/users/ban",
+        type: 'POST',
+        headers: {"x-access-token": localStorage.getItem('jwt_token')},
+        data: { userid: userid },
+        success: function(data) {
+          this.$socket.emit('ban', socketid);
+          Materialize.toast('User has been banned.',2000);
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+          Materialize.toast('Something went wrong. Please try again.',4000);
+        }
+      });
+      this.$socket.emit('ban', socketid);
+    },
     logOut: function() {
       localStorage.clear();
       Materialize.toast('You have been successfully logged out.', 4000);
@@ -156,17 +195,24 @@ export default {
       var decoded = jwt_decode(token);
       if(decoded.exp*1000 > Date.now()) {
         var user = JSON.parse(localStorage['user']);
-        if(user.isVerified) {
-          this.username = user.username;
-          var joined_user = {
-            username: user.username,
-            user_id: user.user_id
-          };
-          this.$socket.emit('joined', joined_user);
-          Materialize.toast('Welcome ' + user.username, 2000);
-        } else {
-          Materialize.toast('Please verify your account first',2000);
+        if(user.banned) {
+          Materialize.toast('Your account is banned.',2000);
           router.push('/profile');
+        } else {
+          self.role = user.role;
+          self.social = user.social;
+          if(user.isVerified) {
+            this.username = user.username;
+            var joined_user = {
+              username: user.username,
+              user_id: user.user_id
+            };
+            this.$socket.emit('joined', joined_user);
+            Materialize.toast('Welcome ' + user.username, 2000);
+          } else {
+            Materialize.toast('Please verify your account first',2000);
+            router.push('/profile');
+          }
         }
       } else {
         router.push('/');
@@ -190,6 +236,7 @@ export default {
 #chat-messages {
   height: 80vh;
   overflow-y: auto;
+  word-wrap: break-word;
 }
 #input-chat {
   height:10vh;
@@ -197,10 +244,7 @@ export default {
 #disconnect {
   height: 5vh;
 }
-#msgs {
-  /*height: 100%;*/
-  /*overflow-y: auto;*/
-}
+
 #discn {
   height: 30px;
   line-height: 30px;
@@ -222,6 +266,7 @@ export default {
 }
 #inp {
   margin-bottom:0px;
+  font-size: 1.4em;
 }
 .row {
   margin: 0px;
@@ -237,7 +282,7 @@ export default {
 }
 .sidenav {
     height: 90%;
-    width: 300px;
+    width: 30%;
     position: fixed;
     z-index: 1;
     top: 0;
@@ -303,7 +348,9 @@ export default {
 #submit:disabled {
   background-color: red;
 }
-
+i.material-icons {
+  font-size: 1.5rem;
+}
 
 
 </style>
