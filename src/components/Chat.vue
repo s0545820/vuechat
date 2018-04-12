@@ -149,6 +149,7 @@ export default {
     },
     gamestarted: function() {
       $('#game').slideDown("slow");
+      $('#users').hide();
     }
   },
   methods: {

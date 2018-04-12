@@ -1,5 +1,5 @@
 <template>
-    <div class="container game-container">
+    <div class="container game-container grey lighten-2">
       <div class="row">
         <div id="endcredits">
           <!--<h3><p>Congratulations!</p> You won.</h3>-->
@@ -84,9 +84,14 @@ export default {
       }
     },
     gamewon: function() {
-      Materialize.toast('You lost!',2000);
       this.text = this.text_lost;
       $('#endcredits').fadeIn(500);
+    },
+    disconnected: function(id) {
+      if(id === this.opponent.socketid) {
+        this.text = '<h3><p>Your opponent has left the game.</p></h3>'
+        $('#endcredits').fadeIn(500);
+      }
     }
   },
   methods: {
@@ -108,13 +113,11 @@ export default {
           this.check_count++;
 
           if(this.gamewon()) {
-            Materialize.toast('You won!',2000);
             this.$socket.emit('gamewon', this.opponent.socketid);
             this.text = this.text_won;
             $('#endcredits').fadeIn(500);
           }
           if(this.check_count === 9) {
-            Materialize.toast('Draw! Friendship wins.',2000);
             this.text = '<h3><p>Draw!</p> Friendship wins.</h3>';
             $('#endcredits').fadeIn(500);
           }
@@ -144,7 +147,7 @@ export default {
     resetGame: function() {
       $('.gamecell').css('background-color', 'white');
       $('.gamecell').removeClass('checked');
-      $('#endcredits').css('display', 'none');
+      $('#endcredits').fadeOut(500);
       $('.container.game-container').fadeOut(500);
       this.check_count = 0;
     },
@@ -175,11 +178,10 @@ export default {
 .game-container {
   display: none;
   height: 370px;
-  border: 1px solid black;
+
   position: absolute;
   left: 15%;
   top:0;
-  background-color: lightgrey;
   transition: top 2s ease 0s;
 }
 .gamecell {
@@ -201,22 +203,23 @@ export default {
 }
 
 @media only screen and (max-width: 600px) {
-  .container {
-    left: 0;
-
+  .game-container {
+    left:5%;
   }
   .toggle-game.material-icons {
-    margin-top: 8px;
+    margin-top: 10px;
   }
 }
 @media only screen and (max-width: 992px) and (min-width: 601px)  {
-
+  .game-container {
+    left:8%;
+  }
 }
 .toggle-game {
   border: 1px solid black;
   border-radius: 1000px;
   font-size: 2.8rem;
-  margin-top: 5px;
+  margin-top: 7px;
   cursor: pointer;
 }
 #endcredits {
