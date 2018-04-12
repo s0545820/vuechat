@@ -67,7 +67,8 @@ export default {
       expand: 'expand_less',
       text_lost: '<h3><p>Shit happens.</p> Try your best next time.</h3>',
       text_won: '<h3><p>Congratulations!</p> You won.</h3>',
-      text: ''
+      text: '',
+      check_count: 0
     }
   },
   sockets: {
@@ -76,6 +77,11 @@ export default {
       //$('#'+data.cell).addClass(this.opponent.pattern);
       $('#'+cell).addClass('checked');
       this.turn = true;
+      this.check_count++;
+      if(this.check_count === 9) {
+        this.text = '<h3><p>Draw!</p> Friendship wins.</h3>';
+        $('#endcredits').fadeIn(500);
+      }
     },
     gamewon: function() {
       Materialize.toast('You lost!',2000);
@@ -99,11 +105,17 @@ export default {
           }
           this.$socket.emit('maketurn', data);
           this.turn = false;
+          this.check_count++;
 
           if(this.gamewon()) {
             Materialize.toast('You won!',2000);
             this.$socket.emit('gamewon', this.opponent.socketid);
             this.text = this.text_won;
+            $('#endcredits').fadeIn(500);
+          }
+          if(this.check_count === 9) {
+            Materialize.toast('Draw! Friendship wins.',2000);
+            this.text = '<h3><p>Draw!</p> Friendship wins.</h3>';
             $('#endcredits').fadeIn(500);
           }
         }
@@ -134,6 +146,7 @@ export default {
       $('.gamecell').removeClass('checked');
       $('#endcredits').css('display', 'none');
       $('.container.game-container').fadeOut(500);
+      this.check_count = 0;
     },
     toggleGame: function() {
       if(this.expand == 'expand_less') {
