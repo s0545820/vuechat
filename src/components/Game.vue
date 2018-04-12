@@ -132,6 +132,7 @@ export default {
     resetGame: function() {
       $('.gamecell').css('background-color', 'white');
       $('.gamecell').removeClass('checked');
+      $('#endcredits').css('display', 'none');
       $('.container.game-container').fadeOut(500);
     },
     toggleGame: function() {
