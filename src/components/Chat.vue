@@ -229,6 +229,7 @@ export default {
       };
       this.opponent.socketid = socket_id;
       this.opponent.name = name;
+      this.opponent.turn = false;
       this.$socket.emit('gameinvite', data);
     },
     gameaccepted: function() {
