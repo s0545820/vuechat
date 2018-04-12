@@ -6,6 +6,7 @@ import RetrievePassword from '@/components/RetrievePassword'
 import NewPassword from '@/components/NewPassword'
 import Verification from '@/components/Verification'
 import Chat from '@/components/Chat'
+import Game from '@/components/Game'
 
 Vue.use(Router)
 
@@ -40,7 +41,11 @@ export default new Router({
       path: '/chat',
       name: 'chat',
       component: Chat
+    },
+    {
+      path: '/game',
+      name: 'game',
+      component: Game
     }
-
   ]
 })

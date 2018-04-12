@@ -1,5 +1,6 @@
 <template>
   <div class="grey lighten-2">
+    <game :opponent="opponent" id="game"></game>
     <div class="container">
       <div id="disconnect" class="row">
         <button id="discn" class="deep-orange lighten-1 btn col s8 m6 l2 offset-s2 offset-m3 offset-l5"v-on:click="disconnect">disconnect</button>
@@ -20,6 +21,9 @@
             <ul>
               <li class="row useritem" v-for="user in users">
                   <span @click="selectPrivate(user)" class="deep-orange lighten-1 btn small col s7 m8 l6 offset-l1 offset-s1 offset-m1">{{user.username}}</span>
+                  <span class="col l2 m1 s2" v-if="role != 'admin'">
+                    <i @click="gameInvite(user.socketid, user.username)" class="material-icons deep-orange lighten-1 btn small col l10 m12 offset-l6 offset-m3 offset-s6" title="start game">games</i>
+                  </span>
                   <span class="col l2 m1 s2" v-if="role == 'admin' || role == 'mod'">
                     <i @click="kickUser(user.socketid)" class="material-icons deep-orange lighten-1 btn small col l10 m12 offset-l6 offset-m3 offset-s6" title="kick user">sentiment_very_dissatisfied</i>
                   </span>
@@ -62,9 +66,13 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import router from '../router/index';
+import Game from './Game.vue';
 
 export default {
   name: 'chat',
+  components: {
+    game: Game
+  },
   data () {
     return {
       username: '',
@@ -77,7 +85,14 @@ export default {
       },
       privatem: false,
       role: '',
-      social: false
+      social: false,
+      opponent: {
+        socketid: '',
+        turn: false,
+        color: 'red',
+        name: '',
+      //  pattern: 'rred'
+      }
     }
   },
   sockets: {
@@ -115,6 +130,25 @@ export default {
       localStorage.setItem('user', JSON.stringify(user));
       this.disconnect();
       Materialize.toast('You have been banned.', 2000);
+    },
+    //GAME
+    /*Recieved Invitation from another player*/
+    gameinvite: function(challenger) {
+      //pop up yes or no, if yes save opponents socket id
+      if (window.confirm(challenger.username+" wants to challenge you to a Tic Tac Toe game. Accept?")) {
+        this.opponent.socketid = challenger.socket_id;
+        this.opponent.turn = true;
+        this.opponent.name = challenger.username;
+        this.$socket.emit('gameaccepted', challenger.socket_id);
+      } else {
+        this.$socket.emit('gamedenied', challenger.socket_id);
+      }
+    },
+    gamedenied: function() {
+      Materialize.toast('Your game request was denied.', 2000);
+    },
+    gamestarted: function() {
+      $('#game').slideDown("slow");
     }
   },
   methods: {
@@ -186,6 +220,19 @@ export default {
     },
     closeElement: function() {
       $('#users').hide();
+    },
+    //GAME
+    gameInvite: function(socket_id, name) {
+      var data = {
+        socketid: socket_id,
+        username: this.username
+      };
+      this.opponent.socketid = socket_id;
+      this.opponent.name = name;
+      this.$socket.emit('gameinvite', data);
+    },
+    gameaccepted: function() {
+      this.$socket.emit('gameaccepted', this.opponentsid);
     }
   },
   created: function () {
@@ -215,6 +262,7 @@ export default {
           }
         }
       } else {
+        localStorage.clear();
         router.push('/');
       }
     } else {

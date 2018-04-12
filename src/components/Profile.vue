@@ -6,7 +6,7 @@
         <div id="bannedUsers" class="col s12 l5">
           <div>
             <h5 style="text-decoration: underline;">Banned Users</h5>
-            <p v-show="banned_users === undefined || banned_users.length == 0">Ban 'em all!</p>
+            <!--<p v-show="banned_users === undefined || banned_users.length == 0">Ban 'em all!</p>-->
             <ul id="banlist">
                 <li class="row" v-for="user in banned_users">
                   <span id="bannedname" class="col s6 m6 l6">{{user.username}}</span>
@@ -27,6 +27,7 @@
       <!--Admin view end-->
       <div v-else id="auth" class="row">
         <img  v-show="social" id="profile_pic" v-bind:src="pictureURL" width="200" height="200">
+        <img  v-show="!social" id="profile_pic" v-bind:src="pictureURL" width="200" height="200">
         <h3>{{ name }}</h3>
         <div>
           <span v-on:click="sendVerification" v-if="!isVerified" class="btn small light-blue darken-4">verify</span>
@@ -43,9 +44,6 @@
         </div>
       </div>
     </div>
-
-
-
     <div  v-else-if="!this.auth" class="container red">
       <div class="noauthtext">
         <h2>Please</h2>
@@ -59,6 +57,7 @@
 import axios from 'axios';
 import jwt_decode from 'jwt-decode';
 import router from '../router/index';
+import auth from '../auth';
 export default {
   name: 'profile',
   data () {
@@ -77,6 +76,9 @@ export default {
     }
   },
   methods: {
+    joinroom: function(room) {
+      this.$socket.emit('joinroom', room);
+    },
     logOut: function() {
       localStorage.clear();
       Materialize.toast('You have been successfully logged out.', 4000);
@@ -148,10 +150,31 @@ export default {
       this.mail = user.email;
       this.banned = user.banned;
       this.role = user.role;
-      this.isVerified = user.isVerified;
       this.social = user.social;
       if(this.social) {
         this.pictureURL = user.picture.data.url;
+      } else {
+        this.pictureURL = user.url;
+      }
+      this.isVerified = user.isVerified;
+      if(!this.isVerified) {
+        $.ajax({
+          url: "https://cryptic-savannah-75374.herokuapp.com/api/users/"+user.user_id,
+          type: 'GET',
+          headers: {"x-access-token": localStorage.getItem('jwt_token')},
+          success: function(data) {
+            if(data.isVerified) {
+                self.isVerified = data.isVerified;
+                user.isVerified = data.isVerified;
+                localStorage.setItem('user', JSON.stringify(user));
+                Materialize.toast('Your Account has been verified!',4000);
+
+            }
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            console.log('error while trying to get virified status');
+          }
+        });
       }
     };
   }

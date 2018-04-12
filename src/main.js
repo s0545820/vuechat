@@ -18,6 +18,7 @@ HelloJs.init({
 
 Vue.use(VueHello, HelloJs);
 Vue.use(VueSocketIO, socketio('https://cryptic-savannah-75374.herokuapp.com/'));
+
 Vue.use(VeeValidate, {
     dictionary: {
         en: { messages: custom_messages }

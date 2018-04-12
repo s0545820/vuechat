@@ -5,13 +5,9 @@
 </template>
 
 <script>
-import LogOut from '@/components/LogOut';
 import jwt_decode from 'jwt-decode';
 export default {
   name: 'App',
-  components: {
-    LogOut
-  },
   data () {
     return {
       user: {

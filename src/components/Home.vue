@@ -118,30 +118,66 @@ export default {
     signUp: function(ev) {
       ev.preventDefault();
       var self = this;
-      this.$validator.validateAll(['username','email','password','passwordConfirm']).then((result) => {
+      this.$validator.validateAll(['username','email','password','passwordConfirm','gender']).then((result) => {
         if (result) {
-          var newUser = {
-            username: self.credentials.username,
-            email: self.credentials.email,
-            password: self.credentials.password,
-          };
-          $.post("https://cryptic-savannah-75374.herokuapp.com/api/register", newUser, function(result){
-            localStorage.setItem('jwt_token', result.jwt_token);
-            localStorage.setItem('refresh_token', result.refresh_token);
-            var user = {
-              username: jwt_decode(localStorage.getItem('jwt_token')).username,
-              email: jwt_decode(localStorage.getItem('jwt_token')).email,
-              isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
-            }
-            localStorage.setItem('user', JSON.stringify(user));
-            router.push('/profile');
-          }).fail(function(jqXHR, textStatus, errorThrown) {
-              if(jqXHR.status == 409) {
-                Materialize.toast('Email or Username already in use.',4000);
-              } else {
-                Materialize.toast('Something went wrong. Please try again.',4000);
+          $.get( "https://dog.ceo/api/breeds/image/random", function( data ) {
+            var newUser = {
+              username: self.credentials.username,
+              email: self.credentials.email,
+              password: self.credentials.password,
+              url: data.message
+
+            };
+            $.post("https://cryptic-savannah-75374.herokuapp.com/api/register", newUser, function(result){
+              localStorage.setItem('jwt_token', result.jwt_token);
+              localStorage.setItem('refresh_token', result.refresh_token);
+              var user = {
+                username: jwt_decode(localStorage.getItem('jwt_token')).username,
+                email: jwt_decode(localStorage.getItem('jwt_token')).email,
+                isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
+                user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id,
+                role: jwt_decode(localStorage.getItem('jwt_token')).role,
+                banned: jwt_decode(localStorage.getItem('jwt_token')).banned,
+                url: jwt_decode(localStorage.getItem('jwt_token')).url
               }
+              localStorage.setItem('user', JSON.stringify(user));
+              router.push('/profile');
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                if(jqXHR.status == 409) {
+                  Materialize.toast('Email or Username already in use.',4000);
+                } else {
+                  Materialize.toast('Something went wrong. Please try again.',4000);
+                }
+            });
+          }).fail(function(jqXHR, textStatus, errorThrown) {
+            var newUser = {
+              username: self.credentials.username,
+              email: self.credentials.email,
+              password: self.credentials.password,
+            };
+            $.post("https://cryptic-savannah-75374.herokuapp.com/api/register", newUser, function(result){
+              localStorage.setItem('jwt_token', result.jwt_token);
+              localStorage.setItem('refresh_token', result.refresh_token);
+              var user = {
+                username: jwt_decode(localStorage.getItem('jwt_token')).username,
+                email: jwt_decode(localStorage.getItem('jwt_token')).email,
+                isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
+                user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id,
+                role: jwt_decode(localStorage.getItem('jwt_token')).role,
+                banned: jwt_decode(localStorage.getItem('jwt_token')).banned,
+                url: jwt_decode(localStorage.getItem('jwt_token')).url
+              }
+              localStorage.setItem('user', JSON.stringify(user));
+              router.push('/profile');
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                if(jqXHR.status == 409) {
+                  Materialize.toast('Email or Username already in use.',4000);
+                } else {
+                  Materialize.toast('Something went wrong. Please try again.',4000);
+                }
+            });
           });
+
         }
       });
     },
@@ -163,10 +199,10 @@ export default {
               isVerified: jwt_decode(localStorage.getItem('jwt_token')).isVerified,
               user_id: jwt_decode(localStorage.getItem('jwt_token')).user_id,
               role: jwt_decode(localStorage.getItem('jwt_token')).role,
-              banned: jwt_decode(localStorage.getItem('jwt_token')).banned
+              banned: jwt_decode(localStorage.getItem('jwt_token')).banned,
+              url: jwt_decode(localStorage.getItem('jwt_token')).url
             }
             localStorage.setItem('user', JSON.stringify(user));
-            //Todo: Send request to server to set user 'online'
             router.push('/profile');
           }).fail(function(jqXHR, textStatus, errorThrown) {
               if(jqXHR.status == 401) {
@@ -186,6 +222,7 @@ export default {
       var self = this;
       hello.login(network,{}).then(function() {
         const authRes = hello(network).getAuthResponse();
+        console.log(authRes);
         $.post("https://cryptic-savannah-75374.herokuapp.com/api/sociallogin", {access_token: authRes.access_token}, function(result){
           localStorage.setItem('jwt_token', result.jwt_token);
           localStorage.setItem('refresh_token', result.refresh_token);
@@ -197,12 +234,6 @@ export default {
               Materialize.toast(errorThrown,4000);
             }
         });
-
-
-
-
-
-        //hello.logout('facebook');
       })
     }
   },
@@ -218,9 +249,8 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-body {
-  background-color: red;
-}
+
+
 #container {
   text-align: center;
   height: 100vh;
